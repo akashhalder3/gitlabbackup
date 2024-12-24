@@ -1,5 +1,3 @@
-The warning you see is expected behavior. The `gitlab-backup` command only backs up repositories, database contents, and uploads but does **not** include configuration files (`gitlab.rb` and `gitlab-secrets.json`) due to security concerns.
-
 To create a complete backup, you must manually back up these configuration files. Here's how to ensure a complete backup:
 
 ---
@@ -57,5 +55,51 @@ To automate this process, append the following to a cron job:
 This will create a complete backup daily at 2 AM.
 
 ---
+### **2. Restore GitLab Instance**
 
-Let me know if you need further clarification or help setting this up!
+To restore your GitLab instance, ensure you have the following:
+- Backup file (e.g., `1679330714_2023_03_20_13.0.0_gitlab_backup.tar`)
+- `gitlab-secrets.json` and `gitlab.rb`
+
+#### **Steps to Restore**
+1. **Stop GitLab Services**
+   ```bash
+   sudo gitlab-ctl stop puma
+   sudo gitlab-ctl stop sidekiq
+   ```
+
+2. **Place Backup in the Backup Directory**
+   - Move the backup file to `/var/opt/gitlab/backups/`:
+     ```bash
+     sudo cp 1679330714_2023_03_20_13.0.0_gitlab_backup.tar /var/opt/gitlab/backups/
+     ```
+
+3. **Restore Backup**
+   ```bash
+   sudo gitlab-backup restore BACKUP=1679330714_2023_03_20_13.0.0
+   ```
+   - Replace `1679330714_2023_03_20_13.0.0` with your backup's filename (without `.tar`).
+
+4. **Restore Configuration**
+   - Copy the configuration files back:
+     ```bash
+     sudo cp /path/to/gitlab-secrets.json /etc/gitlab/gitlab-secrets.json
+     sudo cp /path/to/gitlab.rb /etc/gitlab/gitlab.rb
+     ```
+
+5. **Reconfigure GitLab**
+   - Reconfigure GitLab to apply settings:
+     ```bash
+     sudo gitlab-ctl reconfigure
+     ```
+
+6. **Start GitLab Services**
+   ```bash
+   sudo gitlab-ctl start
+   ```
+
+7. **Verify the Restore**
+   - Visit your GitLab instance in a browser and verify that repositories, data, and configurations are restored.
+
+---
+
